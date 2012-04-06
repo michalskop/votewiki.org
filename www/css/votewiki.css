@@ -1,0 +1,23 @@
+textarea.textarea-textareahide{
+  display:none;
+}
+
+textarea.textarea-summary {
+  height:25px;
+}
+
+.remaining {
+  color:#abcdef;
+  font-size: 2em;
+  font-weight: bold;
+  display: inline;
+}
+
+.textarea-text {
+  display: inline;
+}
+
+#textarea-summary-neutral-text{
+  font-weight: bold;
+}
+

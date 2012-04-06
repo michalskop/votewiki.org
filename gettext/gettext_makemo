@@ -1,0 +1,6 @@
+#!/bin/bash
+
+cd ../www/locale/cs_CZ.utf8/LC_MESSAGES
+msgfmt -o messages.mo messages.po
+cd ../../sk_SK.utf8/LC_MESSAGES
+msgfmt -o messages.mo messages.po
