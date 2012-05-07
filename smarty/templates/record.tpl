@@ -3,21 +3,25 @@
 {block name=title}{$smarty.const.VW_TITLE} – {$h1}{/block}
 
 {block name=head}
-<script type="text/javascript" src="/js/record.js"></script>
+
 {/block}
 
 {block name=pageId}{$page_id}{/block}
 
-{block name=formStart}<form action="/record/{$page_id}/save/captcha" method="post" data-ajax="false" data-rel="dialog">{/block}
+{block name=formStart}<form action="/record/{$page_id}/save" method="post" data-ajax="false" data-rel="dialog">{/block}
 
 {block name=content}
-
+<script type="text/javascript" src="http://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
+<script type="text/javascript" src="/js/record.js"></script>
+<script type="text/javascript">
+  var captcha_public_key='{$captcha_public_key}';
+</script>
   <!--charts-->
   <div>
     <div class="ui-grid-b">
-      <div class="ui-block-a">{t}For{/t}: {$data.sum.vote_meaning_global.for}</div>
-      <div class="ui-block-b">{t}Against{/t}: {$data.sum.vote_meaning_global.against}</div>
-      <div class="ui-block-c">{t}Neutral{/t}: {$data.sum.vote_meaning_global.neutral}</div>     
+      <div class="ui-block-a">{t}For{/t}:  {if isset($data.sum.vote_meaning_global.for)}{$data.sum.vote_meaning_global.for}{else}0{/if}</div>
+      <div class="ui-block-b">{t}Against{/t}: {if isset($data.sum.vote_meaning_global.against)}{$data.sum.vote_meaning_global.against}{else}0{/if}</div>
+      <div class="ui-block-c">{t}Neutral{/t}: {if isset($data.sum.vote_meaning_global.neutral)}{$data.sum.vote_meaning_global.neutral}{else}0{/if}</div>     
       <div class="ui-block-a"><img src="{$charts.vote_meaning.for}" /></div>
       <div class="ui-block-b"><img src="{$charts.vote_meaning.against}" /></div>
       <div class="ui-block-c"><img src="{$charts.vote_meaning.neutral}" /></div>
@@ -120,9 +124,19 @@
 </div>
 <div id="save">
   <div data-role="navbar" data-position="fixed" data-tap-toggle="false" data-iconpos="top">
+    <!--captcha -->
+    <div class="ui-grid-b">
+    <div class="ui-block-a"></div>
+    <div class="ui-block-b">
+    <div id='recaptcha'>
+    </div>
+    </div>
+    <div class="ui-block-c">
     <ul>
       <li><input type="submit" value="{t}Save{/t}" data-theme="e" data-icon="bell" /></li>
     </ul>
+    </div>
+    </div>
   </div>
 </div>
 {/block}

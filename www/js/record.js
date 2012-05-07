@@ -7,7 +7,10 @@ $( document ).delegate(".pageRecord",'pageinit',function(){
 //show 'save' on any change on page
 $( document ).delegate(".pageRecord",'pageinit',function(){
   $(".changable").keyup(function() {
-    $('#save').show("slide");
+    if (!($('#save').is(':visible') )) {
+      $('#save').show("slide");
+      showRecaptcha();
+    }
   });
 });
 
@@ -53,6 +56,7 @@ $( document ).delegate(".pageRecord",'pageinit',function(){
     $('#'+tagId+'-wrapper').remove();
     $('#tags').append("<input type='hidden' name='deleted-tag-"+tagId+"-input' id='deleted-tag-"+tagId+"-input' value='"+tagVal+"' />");
     $('#save').show("slide");
+    showRecaptcha();
   });
 });
 
@@ -63,8 +67,20 @@ $( document ).delegate(".pageRecord",'pageinit',function(){
     $('#tags').append("<input type='text' name='new-tag-"+rand+"-input' id='new-tag-"+rand+"-input' data-mini='true' />");
     $("#new-tag-"+rand+"-input").textinput();
     $('#save').show("slide");
+    showRecaptcha();
   });
 });
+
+//show recaptcha
+function showRecaptcha() {
+  Recaptcha.create("6LdC4s8SAAAAAL6hJcwl7mIl_kHo2ifnAFc_rBju",
+    "recaptcha",
+    {
+      theme: "red",
+      //callback: Recaptcha.focus_response_field
+    }
+  );
+}
 
 /*
 jQuery("div:jqmData(role='page'):last").bind('pageshow', function(){

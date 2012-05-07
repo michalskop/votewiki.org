@@ -23,7 +23,7 @@ switch ($page)
 		break;
 
 	case 'search':
-		search_page();
+		search_page($parameters);
 		break;
 
 	default:
@@ -35,7 +35,93 @@ function static_page($page)
 	$smarty = new SmartyVotewiki;
 	$smarty->display($page . '.tpl');
 }
+/**
+*
+*/
 
+function search_page($parameters) {
+error_reporting(E_ALL);
+  global $api_data, $api_votewiki, $locale;  
+  $smarty = new SmartyVotewiki;
+  
+  // switch
+  if (isset($parameters[0]) and isset($parameters[1]) and ($parameters[0] == 'tag')) {
+    //search in tags
+  } else if (isset($parameters[0])) {
+    //search in tags + texts
+    $record_ids = $api_votewiki->read('SearchQuery',array('terms' => pg_escape_string($parameters[0]), 'search_in' => 'tag'));
+    print_r($record_ids);die();
+  }
+  
+  if (isset($parameters[0]) and isset($parameters[1]) and ($parameters[0] == 'tag')) {
+      $record_ids = $api_votewiki->read('SearchQuery',array('terms' => pg_escape_string($parameters[1]), 'in' => 'tag'));
+        $smarty->assign('h1', htmlspecialchars($parameters[1]));
+    if (count($record_ids) > 0) {
+      foreach ($record_ids as $tag) {
+  //print_r( $record_id);
+         $records_tag[] = array(
+          'record' => $k = $api_votewiki->readOne('VotewikiRecord',array('id' => $tag['votewiki_record_id'])),
+          'source' => $api_data->readOne('DivisionAttribute',array('division_id' => $k['division_id'],'name'=>'source_code')),
+          'division' => $d = $api_data->readOne('Division',array('id' => $k['division_id'])),
+          'parliament' => $api_data->readOne('Parliament',array('code' => $d['parliament_code']))
+        );
+        
+      }
+      $smarty->assign('records_tag', $records_tag);
+    }
+  }
+  else if (isset($parameters[0])) {
+    $smarty->assign('h1', htmlspecialchars($parameters[0]));
+    $query_string = pg_escape_string($parameters[0]);
+    $tags = $api_votewiki->read('SearchQuery',array('terms' => $query_string, 'in' => 'tag'));
+    $texts = $api_votewiki->read('SearchQuery',array('terms' => $query_string , 'in' => 'text'));
+    $records_tag = array();
+    if (count($tags) > 0) {
+      foreach($tags as $tag) {
+        $records_tag[] = array(
+          'record' => $k = $api_votewiki->readOne('VotewikiRecord',array('id' => $tag['votewiki_record_id'])),
+          'source' => $api_data->readOne('DivisionAttribute',array('division_id' => $k['division_id'],'name'=>'source_code')),
+          'division' => $api_data->readOne('Division',array('id' => $k['division_id'])),
+        );
+      }
+    }
+    
+    if (count($texts) > 0) {
+      $records_summary = array();
+      $records_description = array();
+      foreach($texts as $text) {
+        $kind = explode(' ',$text['votewiki_text_kind_code']);
+        if ($kind[0] = 'summary')
+          $records_summary[] = array(
+            'summary' => $text,
+            'record' => $k = $api_votewiki->readOne('VotewikiRecord',array('id' => $text['votewiki_record_id'])),
+            'source' => $api_data->readOne('DivisionAttribute',array('division_id' => $k['division_id'],'name'=>'source_code')),
+            'division' => $api_data->readOne('Division',array('id' => $k['division_id'])),
+          );  
+         else 
+           $records_description[] = array(
+            'description' => $text,
+            'record' => $k = $api_votewiki->readOne('VotewikiRecord',array('id' => $text['votewiki_record_id'])),
+            'source' => $api_data->readOne('DivisionAttribute',array('division_id' => $k['division_id'],'name'=>'source_code')),
+            'division' => $api_data->readOne('Division',array('id' => $k['division_id'])),
+          );  
+        
+      }
+    }
+    $smarty->assign('records_tag', $records_tag);
+    $smarty->assign('records_summary', $records_summary);
+  } else {
+    $smarty->assign('h1', 'search');
+  }
+  
+  $smarty->assign('page_id', 'search');
+  $smarty->display('search.tpl');
+  
+}
+
+/**
+*
+*/
 function record_page($parameters) {
   global $api_data, $api_votewiki, $locale;
   //get possible parliament_code and source_code
@@ -49,15 +135,23 @@ function record_page($parameters) {
         if ($division) {
           $record = $api_votewiki->readOne('VotewikiRecord',array('division_id' => $division['id'], 'lang' => $locale['lang']));
           if (count($record) > 0)
-		    if (isset($parameters[1]) and ($parameters[1] == 'save'))
-		      if (isset($parameters[2]) and ($parameters[2] == 'captcha'))
-		      captcha_record($record);
-		    else
-		      save_record($record);
+		    if (isset($parameters[1]) and ($parameters[1] == 'save')) {
+		      /*if (isset($parameters[2]) and ($parameters[2] == 'captcha'))
+		        captcha_record($record);
+		      else*/
+		      if (create_update_record($division,$record['id']));
+		        $record = $api_votewiki->readOne('VotewikiRecord',array('division_id' => $division['id'], 'lang' => $locale['lang']));
+		      display_record($record,$parameters[0],$division);
+		    }
 		    else
 		      display_record($record,$parameters[0],$division);
 		  else {
-		    display_record($record,$parameters[0],$division);
+		    if (isset($parameters[1]) and ($parameters[1] == 'save')) {
+		      if (create_update_record($division))
+		        $record = $api_votewiki->readOne('VotewikiRecord',array('division_id' => $division['id'], 'lang' => $locale['lang']));
+		      display_record($record,$parameters[0],$division);
+		    } else 
+		      display_record($record,$parameters[0],$division);
 		  } 
 		} else
 		  front_page();
@@ -75,6 +169,10 @@ function record_page($parameters) {
 function display_record($record,$idef,$division) {
   global $api_data, $api_votewiki, $locale;
   $smarty = new SmartyVotewiki;
+  
+  include_once('../config/captcha_key.php');
+  global $captcha_public_key;
+  $smarty->assign('captcha_public_key',$captcha_public_key);
   
   if ($record)
     $smarty->assign('h1', $record['name']);
@@ -125,6 +223,7 @@ function captcha_record($record) {
   $smarty = new SmartyVotewiki;
   $smarty->assign('post',$_POST);
   
+  
   include_once('../config/captcha_key.php');
   $smarty->assign('captcha_public_key',$captcha_public_key);
   $smarty->assign('h1', 'reCaptcha');
@@ -134,8 +233,72 @@ function captcha_record($record) {
 /**
 *
 */
-function save_record($record){
-  print_r($_POST);
+function create_update_record($division,$id = null){
+  global $api_votewiki;
+  //check captcha
+  if (!isset($_POST['recaptcha_challenge_field'])) return false;
+  include_once('../config/captcha_key.php');
+  $cdata = array(
+  'privatekey' => $captcha_private_key,
+  'remoteip' => $_SERVER['REMOTE_ADDR'],
+  'challenge' => $_POST['recaptcha_challenge_field'],
+  'response' => $_POST['recaptcha_response_field'],
+);
+  $result = post_request('http://www.google.com/recaptcha/api/verify',$cdata);
+  $r_ar = explode("\n",$result);
+  if (trim($r_ar[0]) != 'true') return false;
+  
+  
+  //record
+  $data = array(
+    'division_id' => $division['id'],
+    'name' => htmlspecialchars($division['name'] != '' ? $division['name'] : '-'),
+    'lang' => 'cs'
+  );
+  if (is_null($id))
+    $vwr_pkey = $api_votewiki->create('VotewikiRecord',$data);
+  else 
+    $vwr_pkey['id'] = $id;
+  //texts
+  $loop = array (
+    'summary neutral' => 'textarea-summary-neutral',
+    'summary for' => 'textarea-summary-for',
+    'summary against' => 'textarea-summary-against',
+    'description neutral' => 'textarea-description-neutral',
+    'description for' => 'textarea-description-for',
+    'description against' => 'textarea-description-against',
+  );
+  foreach ($loop as $key=>$item) {
+    $data = array(
+      'votewiki_record_id' => $vwr_pkey['id'],
+      'votewiki_text_kind_code' => $key,
+      'text' => (isset($_POST[$item]) ? trim(htmlspecialchars($_POST[$item])) : ''),
+    );
+    if (is_null($id))
+      $api_votewiki->create('VotewikiText',$data);
+    else {
+      $api_votewiki->update('VotewikiText',array('votewiki_record_id'=>$id,'votewiki_text_kind_code' => $key),$data);
+    }
+  }
+  
+  //tags
+  foreach ($_POST as $key=>$item) {
+    $ar = explode('-',$key);
+    if ($ar[1] == 'tag') {
+      if ($ar[0] == 'new') {
+        $item_ar = explode(',',$item);
+        foreach ($item_ar as $i) {
+          if (trim($i) != '')
+            $api_votewiki->create('VotewikiTag',array('votewiki_record_id' => $vwr_pkey['id'],'tag' => trim(htmlspecialchars($i))));
+        }
+      } else if ($ar[0] == 'deleted')
+        $api_votewiki->delete('VotewikiTag',array('votewiki_record_id' => $vwr_pkey['id'],'tag' => htmlspecialchars($item)));
+      
+    }
+  }
+  return true;
+  
+  
 }
 
 /**
@@ -193,6 +356,30 @@ function extract_idef($p) {
     }
   }
   return null;
+}
+
+//http://fczaja.blogspot.com/2011/07/php-how-to-send-post-request-with.html
+function post_request($url,$data) {
+	// Create map with request parameters
+	//$params = array ('surname' => 'Filip', 'lastname' => 'Czaja'); 
+	// Build Http query using params
+	$query = http_build_query ($data);
+	// Create Http context details
+	$contextData = array (
+		            'method' => 'POST',
+		            'header' => "Content-Type: application/x-www-form-urlencoded\r\n".
+		            			"Connection: close\r\n".
+		                        "Content-Length: ".strlen($query)."\r\n",
+		            'content'=> $query );
+	// Create context resource for our request
+	$context = stream_context_create (array ( 'http' => $contextData ));
+	// Read page rendered as result of your POST request
+	$result =  file_get_contents (
+		              $url,  // page url
+		              false,
+		              $context);
+	// Server response is now stored in $result variable so you can process it
+	return $result;
 }
 /*
 function search_advanced_page()
