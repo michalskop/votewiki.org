@@ -9,13 +9,16 @@ $api_votewiki = new ApiDirect('votewiki');
 $page_long = isset($_GET['page']) ? $_GET['page'] : null;
 $parameters = explode('/',$page_long);
 $page = $parameters[0];
+
 array_shift($parameters);
 switch ($page)
 {
 	case 'about':
-	//case 'privacy':
-	//case 'support':
 		static_page($page);
+		break;
+
+	case 'settings':
+		settings_page();
 		break;
 
 	case 'record':
@@ -25,16 +28,115 @@ switch ($page)
 	case 'search':
 		search_page($parameters);
 		break;
+		
+	case 'tag':
+		tag_page($parameters);
+		break;
 
 	default:
 		front_page();
 }
 
+function settings_page() {
+  global $api_data, $api_votewiki, $locale, $locales; 
+  
+  $smarty = new SmartyVotewiki;
+  /*$languages = $api_data->read("Language",array("_order" => array(array('code'))));  
+  //expulge 'any language'
+  foreach ($languages as $key => $l) {
+    if ($l['code'] == '-') unset ($languages[$key]);
+    if ($l['code'] == $locale['lang']) $current_language = $l;
+  }*/
+  asort($locales);
+  $smarty->assign('current_locale', $locale);
+  $smarty->assign('locales', $locales); 
+
+  $smarty->assign('h1', 'Settings');
+  $smarty->assign('page_id', 'settings');
+  $smarty->display('settings.tpl'); 
+
+}
+
+function front_page() {
+  global $api_data, $api_votewiki, $locale; 
+
+ 	$smarty = new SmartyVotewiki;
+ 	
+ 	$records = $api_votewiki->read("VotewikiRecord",array('_limit' => 5, '_order' => array(array('last_updated_on'))));
+ 	if (count($records) > 0) {
+ 	  foreach ($records as $key=>$record) {
+        $records[$key] = $api_votewiki->readOne('SearchQuery',array('search_query_kind' => 'tag', 'votewiki_record_id' => $record['id']));
+      }
+      $smarty->assign('records', $records);
+ 	}
+ 	
+	$smarty->assign('h1', 'VoteWiki');
+	$smarty->assign('page_id', 'front');
+	$smarty->display('front.tpl'); print_r($records);die();
+}
+
 function static_page($page)
 {
 	$smarty = new SmartyVotewiki;
+	$smarty->assign('h1', $page);
+	$smarty->assign('page_id', $page);
 	$smarty->display($page . '.tpl');
 }
+
+function tag_page($parameters) {
+error_reporting(E_ALL);
+  global $api_data, $api_votewiki, $locale;  
+  $smarty = new SmartyVotewiki;
+  
+  $display_all_tags = false;
+  
+  if (isset($parameters[0])) { //display links to records with the tag
+    $smarty->assign('h1', htmlspecialchars($parameters[0]));
+    $smarty->assign('parameter', htmlspecialchars($parameters[0]));
+    
+    $tags_db = $api_votewiki->read("VotewikiTag",array('tag'=>pg_escape_string($parameters[0])));
+    if (count($tags_db) > 0) {
+      foreach ($tags_db as $record) {
+        $records_tag[] = $api_votewiki->readOne('SearchQuery',array('search_query_kind' => 'tag', 'votewiki_record_id' => $record['votewiki_record_id']));
+      }
+      //order by divided_on
+      foreach ($records_tag as $key => $row)
+    	$divided_on[$key]  = $row['divided_on'];
+      array_multisort($divided_on, SORT_DESC, $records_tag);
+          
+      $smarty->assign('records_tag', $records_tag);
+    } else {
+      //no records with the tag, display all tags
+      $display_all_tags = true;
+      $smarty->assign('no_tags_message', '1');
+    }
+    
+  } else {
+    $display_all_tags = true;
+    $smarty->assign('h1', 'No tag'); 
+  }
+  
+  //write all tags
+  if ($display_all_tags) {
+    $smarty->assign('h1', 'Tags');
+    $tags_db = $api_votewiki->read("VotewikiTag",array());
+    //order from most frequent
+    foreach ($tags_db as $tag_db) {
+      $key = mb_strtolower($tag_db['tag'],'UTF-8');
+      if (isset($tags[$key])) $tags[$key] ++;
+      else $tags[$key] = 1;
+    }
+    arsort($tags);
+    $smarty->assign('tags', $tags);
+  }
+  
+  //display 
+  $smarty->assign('page_id', 'tag');
+  $smarty->display('tag.tpl');
+  
+}
+
+
 /**
 *
 */
@@ -44,76 +146,62 @@ error_reporting(E_ALL);
   global $api_data, $api_votewiki, $locale;  
   $smarty = new SmartyVotewiki;
   
-  // switch
-  if (isset($parameters[0]) and isset($parameters[1]) and ($parameters[0] == 'tag')) {
-    //search in tags
-  } else if (isset($parameters[0])) {
-    //search in tags + texts
-    $record_ids = $api_votewiki->read('SearchQuery',array('terms' => pg_escape_string($parameters[0]), 'search_in' => 'tag'));
-    print_r($record_ids);die();
-  }
+  $nothing_found = true;
   
-  if (isset($parameters[0]) and isset($parameters[1]) and ($parameters[0] == 'tag')) {
-      $record_ids = $api_votewiki->read('SearchQuery',array('terms' => pg_escape_string($parameters[1]), 'in' => 'tag'));
-        $smarty->assign('h1', htmlspecialchars($parameters[1]));
-    if (count($record_ids) > 0) {
-      foreach ($record_ids as $tag) {
-  //print_r( $record_id);
-         $records_tag[] = array(
-          'record' => $k = $api_votewiki->readOne('VotewikiRecord',array('id' => $tag['votewiki_record_id'])),
-          'source' => $api_data->readOne('DivisionAttribute',array('division_id' => $k['division_id'],'name'=>'source_code')),
-          'division' => $d = $api_data->readOne('Division',array('id' => $k['division_id'])),
-          'parliament' => $api_data->readOne('Parliament',array('code' => $d['parliament_code']))
-        );
-        
-      }
-      $smarty->assign('records_tag', $records_tag);
-    }
-  }
-  else if (isset($parameters[0])) {
-    $smarty->assign('h1', htmlspecialchars($parameters[0]));
-    $query_string = pg_escape_string($parameters[0]);
-    $tags = $api_votewiki->read('SearchQuery',array('terms' => $query_string, 'in' => 'tag'));
-    $texts = $api_votewiki->read('SearchQuery',array('terms' => $query_string , 'in' => 'text'));
-    $records_tag = array();
-    if (count($tags) > 0) {
-      foreach($tags as $tag) {
-        $records_tag[] = array(
-          'record' => $k = $api_votewiki->readOne('VotewikiRecord',array('id' => $tag['votewiki_record_id'])),
-          'source' => $api_data->readOne('DivisionAttribute',array('division_id' => $k['division_id'],'name'=>'source_code')),
-          'division' => $api_data->readOne('Division',array('id' => $k['division_id'])),
-        );
-      }
-    }
-    
-    if (count($texts) > 0) {
-      $records_summary = array();
-      $records_description = array();
-      foreach($texts as $text) {
-        $kind = explode(' ',$text['votewiki_text_kind_code']);
-        if ($kind[0] = 'summary')
-          $records_summary[] = array(
-            'summary' => $text,
-            'record' => $k = $api_votewiki->readOne('VotewikiRecord',array('id' => $text['votewiki_record_id'])),
-            'source' => $api_data->readOne('DivisionAttribute',array('division_id' => $k['division_id'],'name'=>'source_code')),
-            'division' => $api_data->readOne('Division',array('id' => $k['division_id'])),
-          );  
-         else 
-           $records_description[] = array(
-            'description' => $text,
-            'record' => $k = $api_votewiki->readOne('VotewikiRecord',array('id' => $text['votewiki_record_id'])),
-            'source' => $api_data->readOne('DivisionAttribute',array('division_id' => $k['division_id'],'name'=>'source_code')),
-            'division' => $api_data->readOne('Division',array('id' => $k['division_id'])),
-          );  
-        
-      }
-    }
-    $smarty->assign('records_tag', $records_tag);
-    $smarty->assign('records_summary', $records_summary);
+  $simple_order = array(
+    'summary neutral' => 0,
+    'summary for' => 1,
+    'summary against' => 2,
+    'description neutral' => 3,
+    'description for' => 4,
+    'description against' => 5
+  );
+  
+  if (isset($parameters[0])) {
+	  //search in tags
+	  $tags_db = $api_votewiki->read('SearchQuery',array('search_query_kind' => 'tag_fulltext', 'terms' => pg_escape_string(mb_strtolower($parameters[0],'UTF-8'))));
+	  if (count($tags_db) > 0) {
+		foreach ($tags_db as $record) {
+		  $records_tag[] = $api_votewiki->readOne('SearchQuery',array('search_query_kind' => 'tag', 'votewiki_record_id' => $record['votewiki_record_id']));
+		}
+		//order by divided_on
+		foreach ($records_tag as $key => $row)
+			$divided_on[$key]  = $row['divided_on'];
+		array_multisort($divided_on, SORT_DESC, $records_tag);
+		      
+		$smarty->assign('records_tag', $records_tag);
+		$nothing_found = false;
+	  }
+	  
+	  
+	  //search in full texts
+	  $search_db = $api_votewiki->read('SearchQuery',array('search_query_kind' => 'fulltext', 'terms' => pg_escape_string(mb_strtolower($parameters[0],'UTF-8'))));
+	  
+
+	  if (count($search_db) > 0) {
+		//reorder 
+		$records = array();
+		foreach ($search_db as $item) {
+		  $records[$item['votewiki_record_id']]['text'][$simple_order[$item['votewiki_text_kind_code']]] = $item;
+		}
+		
+		//get info + order
+		foreach ($records as $key=>$record) {
+		  ksort($records[$key]['text']);
+		  $records[$key]['info'] = $api_votewiki->readOne('SearchQuery',array('search_query_kind' => 'tag', 'votewiki_record_id' => $key));
+		}
+
+		$smarty->assign('records', $records);
+		$nothing_found = false;
+	  }
+	  $smarty->assign('h1', htmlspecialchars($parameters[0])); 
   } else {
-    $smarty->assign('h1', 'search');
+    $smarty->assign('h1', 'Search'); 
+    $nothing_found = false;
   }
   
+  
+  $smarty->assign('nothing_found', $nothing_found);
   $smarty->assign('page_id', 'search');
   $smarty->display('search.tpl');
   
@@ -299,13 +387,6 @@ function create_update_record($division,$id = null){
   return true;
   
   
-}
-
-/**
-*
-*/
-function front_page() {
-
 }
 
 /**

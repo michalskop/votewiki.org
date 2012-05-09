@@ -55,8 +55,10 @@ $( document ).delegate(".pageRecord",'pageinit',function(){
     tagVal = $('#'+tagId+'-input').attr('value');
     $('#'+tagId+'-wrapper').remove();
     $('#tags').append("<input type='hidden' name='deleted-tag-"+tagId+"-input' id='deleted-tag-"+tagId+"-input' value='"+tagVal+"' />");
-    $('#save').show("slide");
-    showRecaptcha();
+    if (!($('#save').is(':visible') )) {
+      $('#save').show("slide");
+      showRecaptcha();
+    }
   });
 });
 
@@ -66,8 +68,10 @@ $( document ).delegate(".pageRecord",'pageinit',function(){
     rand = Math.floor(Math.random()*10000000);
     $('#tags').append("<input type='text' name='new-tag-"+rand+"-input' id='new-tag-"+rand+"-input' data-mini='true' />");
     $("#new-tag-"+rand+"-input").textinput();
-    $('#save').show("slide");
-    showRecaptcha();
+    if (!($('#save').is(':visible') )) {
+      $('#save').show("slide");
+      showRecaptcha();
+    }
   });
 });
 

@@ -1,2 +1,5 @@
 config/
 dev/
+smarty/templates_c
+smarty_/cache
+smarty/configs

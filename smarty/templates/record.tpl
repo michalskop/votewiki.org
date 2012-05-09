@@ -13,6 +13,7 @@
 {block name=content}
 <script type="text/javascript" src="http://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
 <script type="text/javascript" src="/js/record.js"></script>
+<link href="http://jeromeetienne.github.com/jquery-mobile-960/css/jquery-mobile-960.min.css" />
 <script type="text/javascript">
   var captcha_public_key='{$captcha_public_key}';
 </script>
@@ -32,21 +33,21 @@
   <!--summaries-->
   <div data-role="fieldcontain">
     {foreach from=$meanings item=meaning}
-    <div>
-      <label for="textarea-summary-{$meaning.code}">
-        <span data-role="controlgroup" data-type="horizontal" >
+    <fieldset class="container_12">
+      <label for="textarea-summary-{$meaning.code}" class="grid_3">
+        <!--<span data-role="controlgroup" data-type="horizontal">-->
           <span data-role="button" data-icon="{$meaning.icon}" data-theme="{$meaning.swatch}" data-mini="true">{t}{$meaning.name}{/t}</span>
-          <span data-role="button" data-icon="edit" data-theme="{$meaning.swatch}" data-mini="true" data-iconpos="right">&nbsp;</span>
-        </span>
+          <!--<span data-role="button" data-icon="edit" data-theme="{$meaning.swatch}" data-mini="true" data-iconpos="right">&nbsp;</span>-->
+        <!--</span>-->
       </label>
-      <textarea name="textarea-summary-{$meaning.code}" id="textarea-summary-{$meaning.code}" class="changable textarea-summary textarea-textareahide" data-mini="true" maxlength="140" style="display:none">{if isset($texts.{$meaning.summary}.text)}{$texts.{$meaning.summary}.text}{/if}</textarea>
-      <div id="textarea-summary-{$meaning.code}-text" class="textarea-text">
+      <textarea class="grid_9" name="textarea-summary-{$meaning.code}" id="textarea-summary-{$meaning.code}" class="changable textarea-summary textarea-textareahide" data-mini="true" maxlength="140" style="display:none">{if isset($texts.{$meaning.summary}.text)}{$texts.{$meaning.summary}.text}{/if}</textarea>
+      <div id="textarea-summary-{$meaning.code}-text" class="textarea-text grid_9">
         {if isset($texts.{$meaning.summary}.text)}
             {$texts.{$meaning.summary}.text}
         {/if}
       </div>
       <div id="textarea-summary-{$meaning.code}-remaining" class="remaining"></div>
-    </div>
+    </fieldset>
     {/foreach}
   </div>
   
@@ -59,7 +60,7 @@
 		{assign var=loop value=1}
 		{foreach from=$tags item=tag}
 		  <span data-role="controlgroup" data-type="horizontal" data-mini="true" data-inline="true" id="tag-{$loop}-wrapper">
-			<a href="/search/{$tag.tag}" data-role="button" data-theme="d" data-mini="true" title="{$tag.tag}">{$tag.tag}</a>
+			<a href="/tag/{$tag.tag}" data-role="button" data-theme="d" data-mini="true" title="{$tag.tag}">{$tag.tag}</a>
 			<input type="hidden" name="tag-{$loop}-input" id="tag-{$loop}-input" value="{$tag.tag}"/>
 			<span data-role="button" data-icon="delete" data-iconpos="right" title="{t}Delete tag{/t}" id="tag-{$loop}" class="tag-delete">&nbsp;</span>
 		  </span>
@@ -96,10 +97,10 @@
   <div data-role="fieldcontain">
     {foreach from=$meanings item=meaning}
       <label for="textarea-description-{$meaning.code}">
-        <span data-role="controlgroup" data-type="horizontal" >
+        <!--span data-role="controlgroup" data-type="horizontal" >-->
           <span data-role="button" data-icon="{$meaning.icon}" data-theme="{$meaning.swatch}">{t}{$meaning.name}{/t}</span>
-          <span data-role="button" data-icon="edit" data-theme="{$meaning.swatch}" data-iconpos="right">&nbsp;</span>
-        </span>
+          <!--<span data-role="button" data-icon="edit" data-theme="{$meaning.swatch}" data-iconpos="right">&nbsp;</span>-->
+        <!--</span>-->
       </label>
     <textarea name="textarea-description-{$meaning.code}" id="textarea-description-{$meaning.code}" class="changable textarea-description textarea-textareahide" data-mini="true" >{if isset($texts.{$meaning.description}.text)}{$texts.{$meaning.description}.text}{/if}</textarea>
       <div>  
@@ -113,28 +114,20 @@
 {/block}
 
 {block name=footer}
-<!--footer -->
-<div data-role="navbar" data-tap-toggle="false" data-iconpos="top">
-  <ul>
-    <li><a href="/new" data-icon="info" data-ajax="false">{t}About{/t}</a></li>
-    <li><a href="/record/--cz_psp|26002" data-icon="star" data-ajax="false">{t}New record{/t}</a></li>
-    <li><a href="/record/--cz_psp|26003" data-icon="gear" data-ajax="false">{t}Settings{/t}</a></li>
-  </ul>
-</div>
-</div>
+ {include file="footer.tpl"}
+
 <div id="save">
   <div data-role="navbar" data-position="fixed" data-tap-toggle="false" data-iconpos="top">
     <!--captcha -->
     <div class="ui-grid-b">
-    <div class="ui-block-a"></div>
-    <div class="ui-block-b">
-    <div id='recaptcha'>
-    </div>
-    </div>
+      <div class="ui-block-a"></div>
+      <div class="ui-block-b">
+        <div id='recaptcha'></div>
+      </div>
     <div class="ui-block-c">
-    <ul>
-      <li><input type="submit" value="{t}Save{/t}" data-theme="e" data-icon="bell" /></li>
-    </ul>
+      <ul>
+        <li><input type="submit" value="{t}Save{/t}" data-theme="e" data-icon="bell" /></li>
+      </ul>
     </div>
     </div>
   </div>

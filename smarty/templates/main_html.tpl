@@ -9,17 +9,16 @@
 	<meta name="Description" content="{t}MSGID_HTML_HEAD_DESCRIPTION{/t}" />
 	<link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon">
 	<link rel="icon" href="/images/favicon.ico" type="image/x-icon">
-	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.1.0-rc.1/jquery.mobile-1.1.0-rc.1.min.css" />
+	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.1.0/jquery.mobile-1.1.0.min.css" />
 	<link rel="stylesheet" href="http://jeromeetienne.github.com/jquery-mobile-960/css/jquery-mobile-fluid960.min.css" />
 	<script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
-	<script src="http://code.jquery.com/mobile/1.1.0-rc.1/jquery.mobile-1.1.0-rc.1.min.js"></script>
+	<script src="http://code.jquery.com/mobile/1.1.0/jquery.mobile-1.1.0.min.js"></script>
 	
 	<link rel="stylesheet" type="text/css" href="/css/votewiki.css" />
 	<link rel="stylesheet" type="text/css" href="/css/jqm-icon-pack-1.1-original.css" />
 
 	{block name=head}{/block}
 	<script type="text/javascript">var google_analytics_key = "{$smarty.const.GOOGLE_ANALYTICS_KEY}"</script>
-	<script type="text/javascript" src="/js/google_analytics.js"></script>
 </head>
 <body>
   <div data-role="page" id="{block name=pageId}{/block}" class="pageRecord">
@@ -32,10 +31,12 @@
 	<div data-role="content">
 		{block name=content}{/block}
 	</div><!-- /content -->
-	<div data-role="footer" {block name=footerDataTheme}{/block}>
+	<div data-role="footer" {block name=footerDataTheme}{/block} data-tap-toggle="false" data-iconpos="top">
 	  {block name=footer}{/block}
 	</div><!-- /footer -->
 	{block name=formEnd}{/block}
+	{include file="social.tpl"}
+		<script type="text/javascript" src="/js/google_analytics.js"></script>
   </div><!-- /page -->
 </body>
 </html>
