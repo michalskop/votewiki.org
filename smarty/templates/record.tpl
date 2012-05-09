@@ -40,7 +40,7 @@
           <!--<span data-role="button" data-icon="edit" data-theme="{$meaning.swatch}" data-mini="true" data-iconpos="right">&nbsp;</span>-->
         <!--</span>-->
       </label>
-      <textarea class="grid_9" name="textarea-summary-{$meaning.code}" id="textarea-summary-{$meaning.code}" class="changable textarea-summary textarea-textareahide" data-mini="true" maxlength="140" style="display:none">{if isset($texts.{$meaning.summary}.text)}{$texts.{$meaning.summary}.text}{/if}</textarea>
+      <textarea name="textarea-summary-{$meaning.code}" id="textarea-summary-{$meaning.code}" class="changable textarea-summary textarea-textareahide grid_9" data-mini="true" maxlength="140" style="display:none">{if isset($texts.{$meaning.summary}.text)}{$texts.{$meaning.summary}.text}{/if}</textarea>
       <div id="textarea-summary-{$meaning.code}-text" class="textarea-text grid_9">
         {if isset($texts.{$meaning.summary}.text)}
             {$texts.{$meaning.summary}.text}
@@ -124,11 +124,11 @@
       <div class="ui-block-b">
         <div id='recaptcha'></div>
       </div>
-    <div class="ui-block-c">
-      <ul>
-        <li><input type="submit" value="{t}Save{/t}" data-theme="e" data-icon="bell" /></li>
-      </ul>
-    </div>
+      <div class="ui-block-c">
+        <ul>
+          <li><input type="submit" value="{t}Save{/t}" data-theme="e" data-icon="bell" /></li>
+        </ul>
+      </div>
     </div>
   </div>
 </div>

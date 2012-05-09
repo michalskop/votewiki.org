@@ -11,7 +11,17 @@
 	<link rel="icon" href="/images/favicon.ico" type="image/x-icon">
 	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.1.0/jquery.mobile-1.1.0.min.css" />
 	<link rel="stylesheet" href="http://jeromeetienne.github.com/jquery-mobile-960/css/jquery-mobile-fluid960.min.css" />
+	
 	<script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+	<script type="text/javascript">
+	  $(document).bind("mobileinit", function(){
+ 		  //apply overrides here
+ 		  //disabling all ajax:
+		    $.extend(  $.mobile , {
+                  ajaxEnabled: false
+             });
+	  });  
+	</script>
 	<script src="http://code.jquery.com/mobile/1.1.0/jquery.mobile-1.1.0.min.js"></script>
 	
 	<link rel="stylesheet" type="text/css" href="/css/votewiki.css" />
@@ -19,9 +29,14 @@
 
 	{block name=head}{/block}
 	<script type="text/javascript">var google_analytics_key = "{$smarty.const.GOOGLE_ANALYTICS_KEY}"</script>
+	<script type="text/javascript">$(document).live( 'pageinit',function(event){
+        {include file="social.js"}
+});</script>
+
 </head>
 <body>
-  <div data-role="page" id="{block name=pageId}{/block}" class="pageRecord">
+  <div data-role="page" id="{block name=pageId}{/block}" class="pageRecord" data-cache="never">
+    
     {block name=formStart}{/block}
 	<div data-role="header" {block name=headerDataTheme}{/block}>
 		<h1>{$h1}</h1>
@@ -29,13 +44,14 @@
 		<a href="/search" data-role="button" data-icon="search" data-iconpos="notext">{t}Search{/t}</a>
 	</div><!-- /header -->
 	<div data-role="content">
+	  
 		{block name=content}{/block}
 	</div><!-- /content -->
 	<div data-role="footer" {block name=footerDataTheme}{/block} data-tap-toggle="false" data-iconpos="top">
 	  {block name=footer}{/block}
 	</div><!-- /footer -->
 	{block name=formEnd}{/block}
-	{include file="social.tpl"}
+	
 		<script type="text/javascript" src="/js/google_analytics.js"></script>
   </div><!-- /page -->
 </body>

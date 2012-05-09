@@ -21,7 +21,7 @@ class VotewikiTag
 	{
 		$this->entity = new Entity(array(
 			'name' => 'votewiki_tag',
-			'columns' => array('votewiki_record_id','tag','tag_data'),
+			'columns' => array('votewiki_record_id','tag','tag_data','lang'),
 			'pkey_columns' => array('votewiki_record_id','tag')
 		));
 	}

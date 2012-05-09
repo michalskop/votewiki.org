@@ -28,7 +28,13 @@ CREATE TABLE votewiki_tag (
   votewiki_record_id integer not null references votewiki_record (id) ON DELETE cascade ON UPDATE cascade,
   tag varchar not null,
   tag_data tsvector NOT NULL DEFAULT ''::tsvector,
-  primary key (votewiki_record_id,tag)
+  lang character varying NOT NULL,
+  primary key (votewiki_record_id,tag),
+  CONSTRAINT votewiki_tag_lang_fkey FOREIGN KEY (lang)
+      REFERENCES language (code) MATCH SIMPLE
+      ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT votewiki_tag_votewiki_record_id_fkey FOREIGN KEY (votewiki_record_id)
+      REFERENCES votewiki_record (id) MATCH SIMPLE
 );
 
 -- privileges on objects

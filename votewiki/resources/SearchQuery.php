@@ -32,8 +32,10 @@ class SearchQuery
 			LEFT JOIN parliament as p ON p.code = d.parliament_code
 			WHERE vwr.id=$1
 			AND da.name = 'source_code'
+			AND vwr.lang=$2
 		  ");
 		  $query->appendParam($params['votewiki_record_id']);
+		  $query->appendParam($params['lang']);
 		  
 		} else
 		
@@ -48,7 +50,7 @@ class SearchQuery
 			WHERE vwr.id=$1
 			AND da.name = 'source_code' 
 			AND vwt.votewiki_text_kind_code IN ($2)
-			AND vwr.lang='cs'
+			AND vwr.lang=$3
 		  ");
 		  $query->appendParam($params['votewiki_record_id']);
 		  if (count($params['votewiki_text_kind_codes']) > 0)
@@ -61,19 +63,25 @@ class SearchQuery
 			// tags
 		if (isset($params['search_query_kind']) and ($params['search_query_kind'] == 'tag_fulltext')) {
 		  $query->setQuery("
-		    SELECT * FROM votewiki_tag
+		    SELECT * FROM votewiki_tag as vwt
+		    LEFT JOIN votewiki_record as vwr ON vwr.id = vwt.votewiki_record_id
 		    WHERE tag_data @@ to_tsquery('simple', $1)
+		    AND vwr.lang = $2
 		  ");
 		  $query->appendParam(Utils::makeTsQuery($params['terms'])); 
+		  $query->appendParam($params['lang']);
 		} else
 		
 		  //text
 		if (isset($params['search_query_kind']) and ($params['search_query_kind'] == 'fulltext')) {
 		  $query->setQuery("
-		    SELECT * FROM votewiki_text
+		    SELECT * FROM votewiki_text as vwt
+		    LEFT JOIN votewiki_record as vwr ON vwr.id = vwt.votewiki_record_id
 		    WHERE text_data @@ to_tsquery('simple', $1)
+		    AND vwr.lang = $2
 		  ");
 		  $query->appendParam(Utils::makeTsQuery($params['terms'])); 
+		  $query->appendParam($params['lang']);
 		}
 		
 		/*if (isset($params['search_query_kind']) and ($params['search_query_kind'] == 'full record')) {
