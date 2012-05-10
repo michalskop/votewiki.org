@@ -63,7 +63,7 @@ function front_page() {
 
  	$smarty = new SmartyVotewiki;
  	
- 	$records = $api_votewiki->read("VotewikiRecord",array('_limit' => 5, 'lang' => $locale['lang'], '_order' => array(array('last_updated_on'))));
+ 	$records = $api_votewiki->read("VotewikiRecord",array('_limit' => 5, 'lang' => $locale['lang'], '_order' => array(array('last_updated_on','DESC'))));
  	if (count($records) > 0) {
  	  foreach ($records as $key=>$record) {
         $records[$key] = $api_votewiki->readOne('SearchQuery',array('search_query_kind' => 'tag', 'votewiki_record_id' => $record['id'], 'lang' => $locale['lang']));
@@ -161,8 +161,9 @@ function search_page($parameters) {
   );
   
   if (isset($parameters[0])) {
+    $parameters[0] = mb_substr($parameters[0],0,4,'UTF-8');
 	  //search in tags
-	  $tags_db = $api_votewiki->read('SearchQuery',array('lang' => $locale['lang'], 'search_query_kind' => 'tag_fulltext', 'terms' => pg_escape_string(mb_strtolower($parameters[0],'UTF-8'))));
+	  $tags_db = $api_votewiki->read('SearchQuery',array('lang' => $locale['lang'], 'search_query_kind' => 'tag_fulltext', 'terms' => pg_escape_string($parameters[0])));
 	  if (count($tags_db) > 0) {
 		foreach ($tags_db as $record) {
 		  $records_tag[] = $api_votewiki->readOne('SearchQuery',array('search_query_kind' => 'tag', 'votewiki_record_id' => $record['votewiki_record_id'], 'lang'=>$locale['lang']));

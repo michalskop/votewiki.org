@@ -65,9 +65,10 @@ class SearchQuery
 		  $query->setQuery("
 		    SELECT * FROM votewiki_tag as vwt
 		    LEFT JOIN votewiki_record as vwr ON vwr.id = vwt.votewiki_record_id
-		    WHERE tag_data @@ to_tsquery('simple', $1)
-		    AND vwr.lang = $2
+		    WHERE (tag=$1 or tag_data @@ to_tsquery('simple', $2))
+		    AND vwr.lang = $3
 		  ");
+		  $query->appendParam(mb_strtolower($params['terms'],'UTF-8'));
 		  $query->appendParam(Utils::makeTsQuery($params['terms'])); 
 		  $query->appendParam($params['lang']);
 		} else
